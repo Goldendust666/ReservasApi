@@ -1,13 +1,12 @@
 package com.dwes.restaurante.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @AllArgsConstructor
@@ -17,8 +16,8 @@ public class Reserva {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private Date fecha;
+    @Future(message = "La fecha y hora deben ser en el futuro.")
+    private LocalDateTime fecha;
     private int numeroPersonas;
 
     @ManyToOne(targetEntity = Cliente.class)

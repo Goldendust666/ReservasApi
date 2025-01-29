@@ -18,7 +18,13 @@ public class ReservaController {
 
     /**borrar*/
     @DeleteMapping("/reservas/{id}")
-    public ResponseEntity<Void> deleteMesa(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteReserva(@PathVariable Long id) {
+        reservaRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reservas/{id}")
+    public ResponseEntity<Void> deleteReserva2(@PathVariable Long id) {
         reservaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }

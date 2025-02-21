@@ -6,13 +6,18 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     private JwtFilter jwtFilter;
@@ -34,20 +39,34 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())   //Se desabilita para las API ya que no se manejan sesiones sino con tokens
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //Indicamos que no cree una sesión porque vamos a utilizar tokens
+        http.csrf(csrf -> csrf.disable())   // Se deshabilita para las API ya que no se manejan sesiones, sino con tokens
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // No creamos una sesión, usamos tokens
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/reservas/**").hasAuthority("ROLE_USER")
                         .requestMatchers("/clientes/**", "/mesas/**").hasAuthority("ROLE_ADMIN")
-
                         .anyRequest().authenticated()
                 );
 
-
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); //Añadimos un filtro que intercepta cada petición HTTP para obtener el token JWK y validarlo
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // Añadimos el filtro JWT
 
         return http.build();
     }
 
+    // Configuración de CORS
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+
+        // Configura las rutas a las que se permite acceso
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:63342");  // Permite solicitudes desde tu frontend (ajusta el puerto si es necesario)
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");  // Permite todos los métodos (GET, POST, PUT, DELETE)
+
+        source.registerCorsConfiguration("/**", config);  // Permite CORS en todas las rutas
+
+        return new CorsFilter(source);
+    }
 }
